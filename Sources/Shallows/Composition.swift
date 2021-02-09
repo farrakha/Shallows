@@ -26,7 +26,9 @@ extension ReadOnlyStorageProtocol {
 extension WritableStorageProtocol {
     
     public func pushing<WritableStorageType : WritableStorageProtocol>(to storage: WritableStorageType) -> WriteOnlyStorage<Key, Value> where WritableStorageType.Key == Key, WritableStorageType.Value == Value {
-        return WriteOnlyStorage(storageName: "\(self.storageName)-\(storage.storageName)", set: { (value, key, completion) in
+        return WriteOnlyStorage(storageName: "\(self.storageName)-\(storage.storageName)", remove: { (key, completion) in
+            self.remove(forKey: key, pushingTo: storage, completion: completion)
+        }, set: { (value, key, completion) in
             self.set(value, forKey: key, pushingTo: storage, completion: completion)
         })
     }
@@ -39,6 +41,8 @@ extension StorageProtocol {
         let name = Shallows.storageName(left: self.storageName, right: backStorage.storageName, pullingFromBack: true, pushingToBack: true)
         return Storage(storageName: name, retrieve: { (key, completion) in
             self.retrieve(forKey: key, backedBy: backStorage, completion: completion)
+        }, remove: { (key, completion) in
+            self.remove(forKey: key, pushingTo: backStorage, completion: completion)
         }, set: { (value, key, completion) in
             self.set(value, forKey: key, pushingTo: backStorage, completion: completion)
         })
@@ -48,6 +52,8 @@ extension StorageProtocol {
         let name = Shallows.storageName(left: storageName, right: readableStorage.storageName, pullingFromBack: true, pushingToBack: false)
         return Storage<Key, Value>(storageName: name, retrieve: { (key, completion) in
             self.retrieve(forKey: key, backedBy: readableStorage, completion: completion)
+        }, remove: { (key, completion) in
+            self.remove(forKey: key, completion: completion)
         }, set: { (value, key, completion) in
             self.set(value, forKey: key, completion: completion)
         })
@@ -93,6 +99,20 @@ extension WritableStorageProtocol {
             } else {
                 shallows_print("Succesfull set of \(key). Pushing to \(storage.storageName)")
                 storage.set(value, forKey: key, completion: completion)
+            }
+        })
+    }
+    
+    fileprivate func remove<StorageType : WritableStorageProtocol>(forKey key: Key,
+                                                                   pushingTo storage: StorageType,
+                                                                   completion: @escaping (ShallowsResult<Void>) -> ()) where StorageType.Key == Key, StorageType.Value == Value {
+        self.remove(forKey: key, completion: { (result) in
+            if result.isFailure {
+                shallows_print("Failed setting \(key) to \(self.storageName). Aborting")
+                completion(result)
+            } else {
+                shallows_print("Succesfull set of \(key). Pushing to \(storage.storageName)")
+                storage.remove(forKey: key, completion: completion)
             }
         })
     }

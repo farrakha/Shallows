@@ -15,7 +15,7 @@ extension StorageDesign {
 public protocol StorageProtocol : ReadableStorageProtocol, WritableStorageProtocol { }
 
 public struct Storage<Key, Value> : StorageProtocol {
-    
+
     public let storageName: String
     
     private let _retrieve: ReadOnlyStorage<Key, Value>
@@ -31,10 +31,11 @@ public struct Storage<Key, Value> : StorageProtocol {
     
     public init(storageName: String,
                 retrieve: @escaping (Key, @escaping (ShallowsResult<Value>) -> ()) -> (),
+                remove: @escaping (Key, @escaping (ShallowsResult<Void>) -> ()) -> (),
                 set: @escaping (Value, Key, @escaping (ShallowsResult<Void>) -> ()) -> ()) {
         self.storageName = storageName
         self._retrieve = ReadOnlyStorage(storageName: storageName, retrieve: retrieve)
-        self._set = WriteOnlyStorage(storageName: storageName, set: set)
+        self._set = WriteOnlyStorage(storageName: storageName, remove: remove, set: set)
     }
     
     public init<StorageType : StorageProtocol>(_ storage: StorageType) where StorageType.Key == Key, StorageType.Value == Value {
@@ -58,6 +59,10 @@ public struct Storage<Key, Value> : StorageProtocol {
         _set.set(value, forKey: key, completion: completion)
     }
     
+    public func remove(forKey key: Key, completion: @escaping (ShallowsResult<Void>) -> ()) {
+        _set.remove(forKey: key, completion: completion)
+    }
+
     public func asReadOnlyStorage() -> ReadOnlyStorage<Key, Value> {
         return _retrieve
     }

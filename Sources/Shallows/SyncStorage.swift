@@ -23,7 +23,8 @@ extension StorageProtocol {
     public func synchronizedCalls() -> Storage<Key, Value> {
         let queue: DispatchQueue = DispatchQueue(label: "\(Self.self)-storage-thread-safety-queue")
         return Storage<Key, Value>(storageName: self.storageName,
-                                 retrieve: dispatched(to: queue, self.retrieve(forKey:completion:)),
+                                   retrieve: dispatched(to: queue, self.retrieve(forKey:completion:)),
+                                   remove: dispatched(to: queue, self.remove(forKey:completion:)),
                                  set: dispatched(to: queue, self.set(_:forKey:completion:)))
     }
     

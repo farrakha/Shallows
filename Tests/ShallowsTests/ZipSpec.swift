@@ -85,7 +85,7 @@ func testZip() {
 }
 
 internal func wos<Key, Value>(_ set: @escaping (Value, Key) throws -> ()) -> WriteOnlyStorage<Key, Value> {
-    return WriteOnlyStorage<Key, Value>(storageName: "wos", set: { (value, key, completion) in
+    return WriteOnlyStorage<Key, Value>(storageName: "wos", remove: { _, _  in }, set: { (value, key, completion) in
         do {
             try set(value, key)
             completion(succeed(with: ()))

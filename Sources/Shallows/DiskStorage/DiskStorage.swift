@@ -55,6 +55,11 @@ public final class DiskFolderStorage : StorageProtocol {
         diskStorage.set(data, forKey: fileURL, completion: completion)
     }
     
+    public func remove(forKey key: Filename, completion: @escaping (ShallowsResult<Void>) -> ()) {
+        let fileURL = self.fileURL(forFilename: key)
+        diskStorage.remove(forKey: fileURL, completion: completion)
+    }
+    
 }
 
 extension URL {
@@ -114,6 +119,7 @@ public final class DiskStorage : StorageProtocol {
     
     public enum Error : Swift.Error {
         case cantCreateFile
+        case cantRemoveFile
         case cantCreateDirectory(Swift.Error)
     }
     
@@ -135,6 +141,18 @@ public final class DiskStorage : StorageProtocol {
         }
     }
     
+    public func remove(forKey key: URL, completion: @escaping (ShallowsResult<Void>) -> ()) {
+        queue.async {
+            do {
+                let path = key.path
+                try self.fileManager.removeItem(atPath: path)
+                completion(.success)
+            } catch {
+                completion(fail(with: error))
+            }
+        }
+    }
+
     public static func directoryURL(of fileURL: URL) -> URL {
         return fileURL.deletingLastPathComponent()
     }

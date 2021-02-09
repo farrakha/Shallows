@@ -25,6 +25,10 @@ public final class MemoryStorage<Key : Hashable, Value> : StorageProtocol {
         completion(.success)
     }
     
+    public func remove(forKey key: Key, completion: @escaping (ShallowsResult<Void>) -> ()) {
+        _storage.write(with: { $0.removeValue(forKey: key)})
+    }
+    
     public func retrieve(forKey key: Key, completion: @escaping (ShallowsResult<Value>) -> ()) {
         let result: ShallowsResult<Value> = {
             if let value = _storage.read()[key] {
@@ -66,5 +70,4 @@ public struct ThreadSafe<Value> {
             value = newValue
         }
     }
-    
 }

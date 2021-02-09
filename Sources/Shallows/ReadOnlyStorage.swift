@@ -132,7 +132,9 @@ public enum UnsupportedTransformationStorageError : Error {
 extension ReadOnlyStorageProtocol {
     
     public func usingUnsupportedTransformation<OtherKey, OtherValue>(_ transformation: (Storage<Key, Value>) -> Storage<OtherKey, OtherValue>) -> ReadOnlyStorage<OtherKey, OtherValue> {
-        let fullStorage = Storage<Key, Value>(storageName: self.storageName, retrieve: self.retrieve) { (_, _, completion) in
+        let fullStorage = Storage<Key, Value>(storageName: self.storageName, retrieve: self.retrieve, remove: { (_, completion) in
+            completion(fail(with: UnsupportedTransformationStorageError.storageIsReadOnly))
+        }) { (_, _, completion) in
             completion(fail(with: UnsupportedTransformationStorageError.storageIsReadOnly))
         }
         return transformation(fullStorage).asReadOnlyStorage()

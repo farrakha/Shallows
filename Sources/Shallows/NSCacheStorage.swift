@@ -1,7 +1,7 @@
 import Foundation
 
 public final class NSCacheStorage<Key : NSObject, Value : AnyObject> : StorageProtocol {
-    
+
     public enum Error : Swift.Error {
         case noValue(Key)
     }
@@ -26,6 +26,9 @@ public final class NSCacheStorage<Key : NSObject, Value : AnyObject> : StoragePr
         }
     }
     
+    public func remove(forKey key: Key, completion: @escaping (ShallowsResult<Void>) -> ()) {
+        cache.removeObject(forKey: key)
+    }
 }
 
 extension StorageProtocol where Key == NSString {

@@ -13,7 +13,7 @@ public enum EmptyCacheError : Error, Equatable {
 extension StorageProtocol {
     
     public func renaming(to newName: String) -> Storage<Key, Value> {
-        return Storage<Key, Value>(storageName: newName, retrieve: self.retrieve, set: self.set)
+        return Storage<Key, Value>(storageName: newName, retrieve: self.retrieve, remove: self.remove, set: self.set)
     }
     
 }
@@ -29,7 +29,7 @@ extension ReadOnlyStorageProtocol {
 extension WriteOnlyStorageProtocol {
     
     public func renaming(to newName: String) -> WriteOnlyStorage<Key, Value> {
-        return WriteOnlyStorage<Key, Value>(storageName: newName, set: self.set)
+        return WriteOnlyStorage<Key, Value>(storageName: newName, remove: self.remove, set: self.set)
     }
     
 }
@@ -38,6 +38,8 @@ extension Storage {
  
     public static func empty() -> Storage<Key, Value> {
         return Storage(storageName: "empty", retrieve: { (_, completion) in
+            completion(.failure(EmptyCacheError.cacheIsAlwaysEmpty))
+        }, remove: { (_, completion) in
             completion(.failure(EmptyCacheError.cacheIsAlwaysEmpty))
         }, set: { (_, _, completion) in
             completion(.failure(EmptyCacheError.cacheIsAlwaysEmpty))
@@ -59,7 +61,9 @@ extension ReadOnlyStorage {
 extension WriteOnlyStorage {
     
     public static func empty() -> WriteOnlyStorage<Key, Value> {
-        return WriteOnlyStorage(storageName: "empty", set: { (_, _, completion) in
+        return WriteOnlyStorage(storageName: "empty", remove: { (_, completion) in
+            completion(.failure(EmptyCacheError.cacheIsAlwaysEmpty))
+        }, set: { (_, _, completion) in
             completion(.failure(EmptyCacheError.cacheIsAlwaysEmpty))
         })
     }

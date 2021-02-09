@@ -41,11 +41,11 @@ extension ReadOnlyStorage {
 extension WriteOnlyStorage {
     
     static func alwaysFailing(with error: Error) -> WriteOnlyStorage<Key, Value> {
-        return WriteOnlyStorage.init(storageName: "", set: { _, _, completion in completion(fail(with: error)) })
+        return WriteOnlyStorage.init(storageName: "", remove: { _, completion in completion(fail(with: error)) }, set: { _, _, completion in completion(fail(with: error)) })
     }
     
     static func alwaysSucceeding() -> WriteOnlyStorage<Key, Value> {
-        return WriteOnlyStorage(storageName: "", set: { _, _, completion in completion(succeed(with: ())) })
+        return WriteOnlyStorage(storageName: "", remove: { _, completion in completion(succeed(with: ())) }, set: { _, _, completion in completion(succeed(with: ())) })
     }
     
 }

@@ -19,7 +19,19 @@ public func zip<Key, Value1, Value2>(_ lhs: ReadOnlyStorage<Key, Value1>, _ rhs:
 }
 
 public func zip<Key, Value1, Value2>(_ lhs: WriteOnlyStorage<Key, Value1>, _ rhs: WriteOnlyStorage<Key, Value2>) -> WriteOnlyStorage<Key, (Value1, Value2)> {
-    return WriteOnlyStorage(storageName: lhs.storageName + "+" + rhs.storageName, set: { (value, key, completion) in
+    return WriteOnlyStorage(storageName: lhs.storageName + "+" + rhs.storageName, remove: { (key, completion) in
+        let container = CompletionContainer<ShallowsResult<Void>, ShallowsResult<Void>>(completion: { (left, right) in
+            let zipped = zip(left, right)
+            switch zipped {
+            case .success:
+                completion(.success)
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        })
+        lhs.remove(forKey: key, completion: { container.completeLeft(with: $0) })
+        rhs.remove(forKey: key, completion: { container.completeRight(with: $0) })
+    }, set: { (value, key, completion) in
         let container = CompletionContainer<ShallowsResult<Void>, ShallowsResult<Void>>(completion: { (left, right) in
             let zipped = zip(left, right)
             switch zipped {
